@@ -29,6 +29,12 @@ By default, scene videos do not automatically start when navigating to the scene
 
 The maximum loop duration option allows looping of shorter videos. Set this value to the maximum scene duration that scene videos should loop. Setting this to 0 disables this functionality.
 
+### VR projection
+
+"Default VR projection" selects Off (the default), 180 LR, 360 TB, or 360 Mono when opening a scene with a tag whose name exactly matches "VR tag". Untagged scenes stay flat. This setting does not start playback or enter fullscreen or headset mode.
+
+You can change the projection in the player's VR menu. Your choice, including Off, lasts until you open another scene, even when changing video quality. Changing the configured default or whether the scene matches the VR tag reapplies the default. Headset browsers retain their existing behavior.
+
 ### Activity tracking
 
 The "Track Activity" option allows tracking of scene play count and duration, and sets the resume point when a scene video is not finished.

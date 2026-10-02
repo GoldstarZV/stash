@@ -857,6 +857,12 @@
           "show_scrubber": "Show scrubber",
           "show_range_markers": "Show range markers",
           "track_activity": "Enable scene play history",
+          "vr_default_projection": {
+            "description": "Automatically select this projection when opening scenes with the VR tag. Does not start playback or enter headset or fullscreen mode.",
+            "heading": "Default VR projection",
+            "mono": "360 Mono",
+            "off": "Off"
+          },
           "vr_tag": {
             "description": "The VR button will only be displayed for scenes with this tag.",
             "heading": "VR tag"

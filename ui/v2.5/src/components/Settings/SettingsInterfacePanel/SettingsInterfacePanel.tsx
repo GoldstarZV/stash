@@ -44,6 +44,7 @@ import {
 } from "src/utils/imageWall";
 import { defaultMaxOptionsShown, defaultPreviewVolume } from "src/core/config";
 import { PatchComponent } from "src/patch";
+import { resolveVRProjection } from "src/utils/vr";
 
 const allMenuItems = [
   { id: "scenes", headingID: "scenes" },
@@ -422,6 +423,28 @@ export const SettingsInterfacePanel: React.FC = PatchComponent(
             value={ui.vrTag ?? undefined}
             onChange={(v) => saveUI({ vrTag: v })}
           />
+          <SelectSetting
+            id="vr-default-projection"
+            headingID="config.ui.scene_player.options.vr_default_projection.heading"
+            subHeadingID="config.ui.scene_player.options.vr_default_projection.description"
+            value={resolveVRProjection(ui.vrDefaultProjection)}
+            onChange={(v) =>
+              saveUI({ vrDefaultProjection: resolveVRProjection(v) })
+            }
+          >
+            <option value="NONE">
+              {intl.formatMessage({
+                id: "config.ui.scene_player.options.vr_default_projection.off",
+              })}
+            </option>
+            <option value="180_LR">180 LR</option>
+            <option value="360_TB">360 TB</option>
+            <option value="360">
+              {intl.formatMessage({
+                id: "config.ui.scene_player.options.vr_default_projection.mono",
+              })}
+            </option>
+          </SelectSetting>
           <ModalSetting<number>
             id="ignore-interval"
             headingID="config.ui.minimum_play_percent.heading"

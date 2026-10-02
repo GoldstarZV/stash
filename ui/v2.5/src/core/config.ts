@@ -9,6 +9,7 @@ import {
 } from "./generated-graphql";
 import { View } from "src/components/List/views";
 import { ITaggerConfig } from "src/components/Tagger/constants";
+import type { VRProjection } from "src/utils/vr";
 
 // NOTE: double capitals aren't converted correctly in the backend
 
@@ -100,6 +101,7 @@ export interface IUIConfig {
   lastNoteSeen?: number;
 
   vrTag?: string;
+  vrDefaultProjection?: VRProjection;
 
   pinnedFilters?: Record<string, string[]>;
   tableColumns?: Record<string, string[]>;

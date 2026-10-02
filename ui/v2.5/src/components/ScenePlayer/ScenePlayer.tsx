@@ -482,21 +482,6 @@ export const ScenePlayer: React.FC<IScenePlayerProps> = PatchComponent(
       interactiveClient.ensurePlaying(player.currentTime());
     }, [interactiveState, getPlayer, interactiveClient]);
 
-    useEffect(() => {
-      const player = getPlayer();
-      if (!player) return;
-
-      const vrMenu = player.vrMenu();
-
-      let showButton = false;
-
-      if (vrTag) {
-        showButton = scene.tags.some((tag) => vrTag === tag.name);
-      }
-
-      vrMenu.setShowButton(showButton);
-    }, [getPlayer, scene, vrTag]);
-
     // Player event handlers
     useEffect(() => {
       const player = getPlayer();
@@ -832,6 +817,19 @@ export const ScenePlayer: React.FC<IScenePlayerProps> = PatchComponent(
         markers.clearMarkers();
       };
     }, [getPlayer, scene, loadMarkers]);
+
+    useEffect(() => {
+      const player = getPlayer();
+      if (!player || !file) return;
+
+      const eligible = !!vrTag && scene.tags.some((tag) => vrTag === tag.name);
+
+      // Run after the source and poster effects: preload is disabled, so the
+      // initial VR poster must not depend on receiving video metadata.
+      player
+        .vrMenu()
+        .setScene(scene.id, eligible, uiConfig?.vrDefaultProjection);
+    }, [getPlayer, file, scene, vrTag, uiConfig?.vrDefaultProjection]);
 
     useEffect(() => {
       const player = getPlayer();

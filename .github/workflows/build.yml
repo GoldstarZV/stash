@@ -68,7 +68,7 @@ jobs:
       id: cache-ui
       with:
         path: ui/v2.5/build
-        key: ${{ runner.os }}-ui-build-${{ hashFiles('ui/v2.5/pnpm-lock.yaml', 'ui/v2.5/public/**', 'ui/v2.5/src/**', 'graphql/**/*.graphql') }}
+        key: ${{ runner.os }}-ui-build-${{ hashFiles('ui/v2.5/package.json', 'ui/v2.5/pnpm-lock.yaml', 'ui/v2.5/public/**', 'ui/v2.5/src/**', 'ui/v2.5/tests/**', 'graphql/**/*.graphql') }}
 
     - name: Validate UI
       # skip UI validation for pull requests if UI is unchanged

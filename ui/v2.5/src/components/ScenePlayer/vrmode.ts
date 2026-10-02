@@ -2,10 +2,8 @@ import videojs, { VideoJsPlayer } from "video.js";
 import "@blaineam/videojs-vr";
 // separate type import, otherwise typescript elides the above import
 // and the plugin does not get initialized
-import type {
-  ProjectionType,
-  Plugin as VideoJsVRPlugin,
-} from "@blaineam/videojs-vr";
+import type { Plugin as VideoJsVRPlugin } from "@blaineam/videojs-vr";
+import { resolveVRProjection, VRProjection } from "src/utils/vr";
 
 export interface VRMenuOptions {
   /**
@@ -22,7 +20,7 @@ enum VRType {
   Off = "Off",
 }
 
-const vrTypeProjection: Record<VRType, ProjectionType> = {
+const vrTypeProjection: Record<VRType, VRProjection> = {
   [VRType.LR180]: "180_LR",
   [VRType.TB360]: "360_TB",
   [VRType.Mono360]: "360",
@@ -72,13 +70,15 @@ class VRMenuButton extends videojs.getComponent("MenuButton") {
   }
 
   private onSelected(item: VRMenuItem) {
-    this.selectedType = item.type;
+    this.trigger("typeselected", item.type);
+  }
+
+  public setSelectedType(type: VRType) {
+    this.selectedType = type;
 
     this.items.forEach((i) => {
       i.selected(i.type === this.selectedType);
     });
-
-    this.trigger("typeselected", item.type);
   }
 
   public setTypes() {
@@ -116,6 +116,9 @@ class VRMenuPlugin extends videojs.getPlugin("plugin") {
   private menu: VRMenuButton;
   private showButton: boolean;
   private vr?: VideoJsVRPlugin;
+  private scene?: { id: string; eligible: boolean; projection: VRProjection };
+  private projection?: VRProjection;
+  private buttonAdded = false;
 
   constructor(player: VideoJsPlayer, options: VRMenuOptions) {
     super(player);
@@ -153,7 +156,7 @@ class VRMenuPlugin extends videojs.getPlugin("plugin") {
     player.on("loadedmetadata", () => this.fixTextureColorSpace());
 
     this.menu.on("typeselected", (_, type: VRType) => {
-      this.loadVR(type);
+      this.selectProjection(vrTypeProjection[type]);
     });
 
     player.on("ready", () => {
@@ -163,10 +166,38 @@ class VRMenuPlugin extends videojs.getPlugin("plugin") {
     });
   }
 
-  private loadVR(type: VRType) {
-    const projection = vrTypeProjection[type];
+  private selectProjection(projection: VRProjection, newScene = false) {
+    const type = Object.values(VRType).find(
+      (value) => vrTypeProjection[value] === projection
+    )!;
+    this.menu.setSelectedType(type);
+    if (projection === this.projection && !newScene) return;
+    const previous = this.projection;
+    this.projection = projection;
     this.vr?.setProjection(projection);
-    this.vr?.init();
+    // Initialize paused posters too. videojs-vr retains this projection when
+    // it initializes again on loadedmetadata (including quality changes).
+    if (projection !== "NONE" || (previous && previous !== "NONE")) {
+      this.vr?.init();
+    }
+  }
+
+  public setScene(id: string, eligible: boolean, defaultProjection: unknown) {
+    if (isVrDevice()) return;
+
+    const projection = resolveVRProjection(defaultProjection);
+    const previous = this.scene;
+    if (
+      previous?.id === id &&
+      previous.eligible === eligible &&
+      previous.projection === projection
+    ) {
+      return;
+    }
+
+    this.scene = { id, eligible, projection };
+    this.setShowButton(eligible);
+    this.selectProjection(eligible ? projection : "NONE", previous?.id !== id);
   }
 
   private fixTextureColorSpace() {
@@ -178,15 +209,19 @@ class VRMenuPlugin extends videojs.getPlugin("plugin") {
   }
 
   private addButton() {
+    if (this.buttonAdded) return;
     const { controlBar } = this.player;
     const fullscreenToggle = controlBar.getChild("fullscreenToggle")!.el();
     controlBar.addChild(this.menu);
     controlBar.el().insertBefore(this.menu.el(), fullscreenToggle);
+    this.buttonAdded = true;
   }
 
   private removeButton() {
+    if (!this.buttonAdded) return;
     const { controlBar } = this.player;
     controlBar.removeChild(this.menu);
+    this.buttonAdded = false;
   }
 
   public setShowButton(showButton: boolean) {
@@ -199,7 +234,7 @@ class VRMenuPlugin extends videojs.getPlugin("plugin") {
       this.addButton();
     } else {
       this.removeButton();
-      this.loadVR(VRType.Off);
+      this.selectProjection("NONE");
     }
   }
 }
